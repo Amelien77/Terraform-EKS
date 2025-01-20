@@ -1,0 +1,36 @@
+terraform.tfvars
+*.save
+.terraform/providers/registry.terraform.io/hashicorp/aws/5.66.0/linux_amd64/terraform-provider-aws_v5.66.0_x5
+/home/ubuntu/terraform/exam-terraform
+.terraform/
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Backup files
+*.tfstate.backup
+
+# Terraform plan files
+*.plan
+
+# .terraform directory - Terraform working directory
+.terraform/
+
+# Crash log files
+crash.log
+
+# Override files - utilisé pour les modifications locales
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform module cache
+.terraform.lock.hcl
+
+
+# AWS credentials and config
+.aws/
+*.aws/credentials
+*.aws/config
