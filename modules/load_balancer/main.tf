@@ -135,6 +135,8 @@ resource "aws_autoscaling_group" "wordpress_asg" {
   vpc_zone_identifier = var.private_subnets
   launch_configuration = aws_launch_configuration.wordpress_lc.id
 
+  security_groups = [aws_security_group.wordpress_sg.id]
+
  tag {
    key                 = "Name"
    value               = "wordpress-instance"

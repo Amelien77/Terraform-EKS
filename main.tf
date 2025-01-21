@@ -15,7 +15,6 @@ module "eks" {
 # Module Load Balancer : Gestion du Load Balancer
 module "load_balancer" {
   source          = "./modules/load_balancer"
-  public_subnets  = module.network_vpc.public_subnets
   private_subnets = module.network_vpc.private_subnets
   vpc_id          = module.network_vpc.vpc_id
 
@@ -36,7 +35,7 @@ module "wordpress" {
   cluster_name    = module.eks.cluster_name
   vpc_id          = module.network_vpc.vpc_id
   private_subnets = module.network_vpc.private_subnets
-  wordpress_asg_id = module.load_balancer.wordpress_asg_id  # Passer l'ID du groupe de mise à l'échelle automatique
+  wordpress_asg_id = module.load_balancer.wordpress_asg_id
 }
 
 # Module base de données : Création de la base de données.
