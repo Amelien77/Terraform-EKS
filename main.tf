@@ -15,7 +15,7 @@ module "eks" {
 # Module Load Balancer : Gestion du Load Balancer
 module "load_balancer" {
   source          = "./modules/load_balancer"
-  private_subnets = module.network_vpc.private_subnets
+  public_subnets = module.network_vpc.public_subnets
   vpc_id          = module.network_vpc.vpc_id
 
   ami_id          = var.ami_id
@@ -50,3 +50,19 @@ module "database" {
     "10.1.3.0/24"
   ]
 }
+
+# Module argocd
+#module "argocd" {
+#  source                = "./modules/argocd"
+#  fall-project_repo            = var.fall-project_repo
+#  fall-project_repo_secret_key = var.GIT_SECRET_KEY
+#  profile = var.profile
+#}
+
+# Module Velero
+#module "velero" {
+#  source       = "./modules/velero"
+#  cluster_name = var.cluster_name
+#  region = var.region
+#  cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
+#}

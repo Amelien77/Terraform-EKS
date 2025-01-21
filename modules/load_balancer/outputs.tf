@@ -42,3 +42,4 @@ output "wordpress_asg_id" {
   description = "ID du groupe de mise à l'échelle automatique WordPress"
   value       = aws_autoscaling_group.wordpress_asg.id
 }
+
