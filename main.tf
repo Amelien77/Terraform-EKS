@@ -1,68 +1,88 @@
-# Module VPC
+# Module Network_vpc: VPC, subnet, tables and association
 module "network_vpc" {
   source = "./modules/network_vpc"
 }
 
-# Module EKS : Créer le cluster Kubernetes pour WordPress
+# Module EKS : EKS Cluster via module AWS officiel
 module "eks" {
-  source          = "./modules/eks"
-  cluster_name    = "wordpress_cluster"
-  vpc_id          = module.network_vpc.vpc_id
-  public_subnets  = module.network_vpc.public_subnets
-  private_subnets = module.network_vpc.private_subnets
-}
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
 
-# Module Load Balancer : Gestion du Load Balancer
-module "load_balancer" {
-  source          = "./modules/load_balancer"
-  public_subnets = module.network_vpc.public_subnets
-  vpc_id          = module.network_vpc.vpc_id
+  cluster_name    = "my-cluster"
+  cluster_version = "1.31"
 
-  ami_id          = var.ami_id
-  instance_type   = "t2.micro"
+  bootstrap_self_managed_addons = false
+  cluster_addons = {
+    coredns                = {}
+    eks-pod-identity-agent = {}
+    kube-proxy             = {}
+    vpc-cni                = {}
+  }
 
-  asg_min_size    = 1
-  asg_max_size    = 3
+  cluster_endpoint_public_access = false
+
+  enable_cluster_creator_admin_permissions = true
+
+  vpc_id                   = module.network_vpc.vpc_id
+  subnet_ids               = module.network_vpc.private_subnets
+  control_plane_subnet_ids = module.network_vpc.private_subnets
+
+  eks_managed_node_group_defaults = {
+    instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large"]
+  }
+
+  eks_managed_node_groups = {
+    example = {
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types = ["m5.xlarge"]
+      min_size       = 2
+      max_size       = 10
+      desired_size   = 2
+    }
+  }
 
   tags = {
-    Name = "wordpress-load-balancer"
+    Environment = "prod"
+    Terraform   = "true"
   }
 }
 
-# Module WordPress : Déploiement de WordPress sur Kubernetes
-module "wordpress" {
-  source          = "./modules/wordpress"
-  cluster_name    = module.eks.cluster_name
-  vpc_id          = module.network_vpc.vpc_id
-  private_subnets = module.network_vpc.private_subnets
-  wordpress_asg_id = module.load_balancer.wordpress_asg_id
+# Module ALB : Gestion du Load Balancer
+module "alb" {
+  source           = "./modules/alb"
+  vpc_id           = module.network_vpc.vpc_id
+  public_subnets   = module.network_vpc.public_subnets
+  eks_cluster_name = module.eks.cluster_name
+  eks_nodes_sg_id  = module.eks.node_security_group_id
 }
 
-# Module base de données : Création de la base de données.
-module "database" {
-  source          = "./modules/database"
+# Module RDS : Création de la base de données.
+module "rds" {
+  source          = "./modules/rds"
   db_username     = var.db_username
   db_password     = var.db_password
   vpc_id          = module.network_vpc.vpc_id
   private_subnets = module.network_vpc.private_subnets
-  app_subnet_cidrs = [
-    "10.1.2.0/24",
-    "10.1.3.0/24"
-  ]
+
+  cidr_app_subnet_a = "10.1.2.0/24"
+  cidr_app_subnet_b = "10.1.3.0/24"
 }
 
-# Module argocd
-#module "argocd" {
-#  source                = "./modules/argocd"
-#  fall-project_repo            = var.fall-project_repo
-#  fall-project_repo_secret_key = var.GIT_SECRET_KEY
-#  profile = var.profile
-#}
+# Module VELERO
+module "velero" {
+  source  = "terraform-module/velero/kubernetes"
+  version = "1.2.1" # Choisis la version appropriée
 
-# Module Velero
-#module "velero" {
-#  source       = "./modules/velero"
-#  cluster_name = var.cluster_name
-#  region = var.region
-#  cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
-#}
+  namespace_deploy            = true
+  app_deploy                  = true
+  cluster_name                = var.cluster_name
+  openid_connect_provider_uri = module.eks.cluster_oidc_issuer_url
+  bucket                      = var.bucket_name
+  values = [
+    templatefile("${path.module}/modules/velero/template/values.yaml", {
+      bucket_name     = var.bucket_name
+      velero_provider = var.velero_provider
+      region          = var.region
+    })
+  ]
+}

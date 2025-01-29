@@ -9,7 +9,7 @@ resource "aws_vpc" "datascientest_vpc" {
   }
 }
 
-#------------------------------sous-réseaux-----------------------------------#
+#------------------------------publics subnets in VPC-----------------------------------#
 
 resource "aws_subnet" "public_subnet_a" {
   vpc_id                  = aws_vpc.datascientest_vpc.id
@@ -45,6 +45,9 @@ resource "aws_subnet" "public_subnet_b" {
   depends_on = [aws_vpc.datascientest_vpc]
 }
 
+
+#------------------------------private subnets in VPC------------------------------------------#
+
 resource "aws_subnet" "app_subnet_a" {
   vpc_id                  = aws_vpc.datascientest_vpc.id
   cidr_block              = var.cidr_app_subnet_a
@@ -77,7 +80,7 @@ resource "aws_subnet" "app_subnet_b" {
   depends_on = [aws_vpc.datascientest_vpc]
 }
 
-#------------------------ NAT Gateways ----------------------------------------#
+#------------------------ NAT Gateways / elastic IP (EIP) in publics subnets-------#
 
 resource "aws_eip" "eip_public_a" {
   domain = "vpc"
@@ -92,7 +95,7 @@ resource "aws_nat_gateway" "gw_public_a" {
   }
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer la NAT Gateway
+    prevent_destroy = false
   }
 
   depends_on = [aws_subnet.public_subnet_a]
@@ -111,13 +114,13 @@ resource "aws_nat_gateway" "gw_public_b" {
   }
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer la NAT Gateway
+    prevent_destroy = false
   }
 
   depends_on = [aws_subnet.public_subnet_b]
 }
 
-#------------------------------------ Gateway internet-----------------------#
+#---------------------------Gateway internet in VPC-----------------------#
 
 resource "aws_internet_gateway" "vpc_igw" {
   vpc_id = aws_vpc.datascientest_vpc.id
@@ -126,14 +129,15 @@ resource "aws_internet_gateway" "vpc_igw" {
   }
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer la Gateway Internet
+    prevent_destroy = false
   }
 
   depends_on = [aws_vpc.datascientest_vpc]
 }
 
-#--------------------Table de routage & route  associations----------------#
+#--------------------public route table and associations in VPC----------------#
 
+# Creation public route table
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.datascientest_vpc.id
   route {
@@ -145,34 +149,39 @@ resource "aws_route_table" "public_route_table" {
   }
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer la table de routage
+    prevent_destroy = false
   }
 
   depends_on = [aws_internet_gateway.vpc_igw]
 }
 
+# association public route table with public subnet a
 resource "aws_route_table_association" "public_route_table_a" {
   subnet_id      = aws_subnet.public_subnet_a.id
   route_table_id = aws_route_table.public_route_table.id
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer l'association
+    prevent_destroy = false
   }
 
   depends_on = [aws_route_table.public_route_table]
 }
 
+# association public route table with public subnet b
 resource "aws_route_table_association" "public_route_table_b" {
   subnet_id      = aws_subnet.public_subnet_b.id
   route_table_id = aws_route_table.public_route_table.id
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer l'association
+    prevent_destroy = false
   }
 
   depends_on = [aws_route_table.public_route_table]
 }
 
+#--------------------private route table and associations in VPC----------------#
+
+# Create private route table a / association with NAT in public subnet a
 resource "aws_route_table" "private_route_table_a" {
   vpc_id = aws_vpc.datascientest_vpc.id
   route {
@@ -184,23 +193,27 @@ resource "aws_route_table" "private_route_table_a" {
   }
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer la table de routage
+    prevent_destroy = false
   }
 
   depends_on = [aws_nat_gateway.gw_public_a]
 }
 
+
+# association private route table a with private subnet a
 resource "aws_route_table_association" "private_route_table_association_a" {
   subnet_id      = aws_subnet.app_subnet_a.id
   route_table_id = aws_route_table.private_route_table_a.id
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer l'association
+    prevent_destroy = false
   }
 
   depends_on = [aws_route_table.private_route_table_a]
 }
 
+
+# create route table b / association with NAT in public subnet b
 resource "aws_route_table" "private_route_table_b" {
   vpc_id = aws_vpc.datascientest_vpc.id
   route {
@@ -212,18 +225,19 @@ resource "aws_route_table" "private_route_table_b" {
   }
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer la table de routage
+    prevent_destroy = false
   }
 
   depends_on = [aws_nat_gateway.gw_public_b]
 }
 
+# association private route table b with private subnet b
 resource "aws_route_table_association" "private_route_table_association_b" {
   subnet_id      = aws_subnet.app_subnet_b.id
   route_table_id = aws_route_table.private_route_table_b.id
 
   lifecycle {
-    prevent_destroy = false  # Permet de supprimer l'association
+    prevent_destroy = false
   }
 
   depends_on = [aws_route_table.private_route_table_b]

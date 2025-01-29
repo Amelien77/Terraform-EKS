@@ -10,7 +10,7 @@ variable "velero_provider" {
 
 variable "bucket_name" {
   type = string
-  default     = "fall-project-backup-s3"
+  default     = "cdojanv24_bucker"
 }
 
 variable "cluster_name" {

@@ -107,6 +107,9 @@ puis remplacer l'AMI dans main.tf
 --> syntaxe ASCII
 Vérifier les descriptions, les mettre en anglais et sans accents
 
+terraform plan -var="bucket_name=your-s3-bucket-name" -var="certificate_arn=arn:aws:acm:region:account-id:certificate/certificate-id" -var="cluster_name=your-cluster-name" -var="cluster_oidc_issuer_url=https://oidc.eks.region.amazonaws.com/id/your-cluster-id" -var="eks_nodes_sg_id=sg-xxxxxxxxxxxxxxxxx" -var="launch_configuration_name=your-launch-configuration-name" -var="openid_connect_provider_uri=https://oidc.eks.region.amazonaws.com/id/your-cluster-id" -var="velero_provider=aws"
+
+
 #------------------------------Explications sur infrastructure aws----------------------------#
 
 Infrastructure cloud sécurisée et scalable sur AWS, comprenant un réseau VPC avec des sous-réseaux publics

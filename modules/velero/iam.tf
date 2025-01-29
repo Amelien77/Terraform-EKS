@@ -54,7 +54,7 @@ resource "aws_iam_role" "fall-project_velero_role" {
 
   assume_role_policy = jsonencode(
     {
-      "Version" : "2012-10-17",
+      "Version" : "2012-10-17"
       "Statement" : [
         {
           "Effect" : "Allow",
