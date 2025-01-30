@@ -21,14 +21,14 @@ resource "aws_security_group" "alb_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    security_groups = [var.eks_nodes_sg_id]  # Utilisation du même SG que pour les nœuds EKS
+    security_groups = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    security_groups = [var.eks_nodes_sg_id]
+    security_groups = ["0.0.0.0/0"]
   }
 
   egress {

@@ -161,12 +161,17 @@ resource "aws_iam_role_policy_attachment" "worker_ssm_policy" {
 #===========================
 # Launch Template for Worker Nodes
 #===========================
+
 resource "aws_launch_template" "this" {
   name_prefix   = "aws-eks-launch-template"  # Nom simplifié sans interpolation
   image_id      = data.aws_ssm_parameter.ami.value
   instance_type = var.instance_type
 
   vpc_security_group_ids = var.security_group_ids
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.eks_nodes.name
+  }
 
   tag_specifications {
     resource_type = "instance"
@@ -176,6 +181,15 @@ resource "aws_launch_template" "this" {
     }
   }
 }
+
+#===========================
+# IAM Instance Profile for EKS Nodes
+#===========================
+resource "aws_iam_instance_profile" "eks_nodes" {
+  name = "eks-nodes-instance-profile"
+  role = aws_iam_role.eks_nodes.name
+}
+
 
 #===========================
 # IAM Policy and Role for EC2
@@ -272,4 +286,31 @@ data "aws_iam_policy_document" "assume_role_policy_nodes" {
 
 data "aws_ssm_parameter" "ami" {
   name = "/aws/service/eks/optimized-ami/1.27/amazon-linux-2/recommended/image_id"
+}
+
+
+#===========================
+# IAM Policy for Node Launch Template Permissions
+#===========================
+resource "aws_iam_role_policy" "eks_nodes_launch_template" {
+  name = "eks-nodes-launch-template-policy"
+  role = aws_iam_role.eks_nodes.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "ec2:RunInstances",
+          "ec2:DescribeInstances",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:CreateLaunchTemplateVersion",
+          "ec2:DescribeSecurityGroups"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }

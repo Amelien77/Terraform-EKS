@@ -80,6 +80,9 @@ Création d'un certificat:
 Vérification certificat:
 aws acm list-certificates --region eu-west-3
 
+aws eks --region eu-west-3 update-kubeconfig --name my-cluster
+
+
 Vous pouvez maintenant utiliser ces commandes:
 terraform init
 terraform validate

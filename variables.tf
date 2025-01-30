@@ -77,7 +77,7 @@ variable "db_password" {
 variable "region" {
   description = "AWS region where resources will be deployed"
   type        = string
-  default     = "us-east-1"
+  default     = "eu-west-3"
 }
 
 # Variable pour l'URL du cluster OIDC de EKS (utilisé pour Velero ou d'autres services)
