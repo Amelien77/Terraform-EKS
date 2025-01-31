@@ -34,7 +34,3 @@ output "rds_endpoint" {
   value       = module.rds.db_endpoint
 }
 
-output "eks_nodes_sg_id" {
-  description = "The security group ID for EKS nodes"
-  value       = var.eks_nodes_sg_id  # Utilisation de la variable si elle est définie
-}

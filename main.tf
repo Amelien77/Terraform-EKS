@@ -54,7 +54,7 @@ module "alb" {
   public_subnets   = module.network_vpc.public_subnets
   certificate_arn  = var.certificate_arn
   eks_cluster_name = module.eks.cluster_name
-  eks_nodes_sg_id  = var.eks_nodes_sg_id # module.eks.node_security_group_id
+  eks_nodes_sg_id  = module.eks.node_security_group_id
 }
 
 # Module RDS : Création de la base de données.
@@ -82,7 +82,7 @@ module "velero" {
   values = [
     templatefile("${path.module}/modules/velero/template/values.yaml", {
       bucket_name     = var.bucket_name
-      velero_provider = var.velero_provider
+      velero_provider = "aws"
       region          = var.region
     })
   ]

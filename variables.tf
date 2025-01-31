@@ -54,11 +54,6 @@ variable "ami_id" {
   default     = "ami-00fdc3cbd36544fea"
 }
 
-# Variable pour le nom de la configuration de lancement (pour ALB)
-variable "launch_configuration_name" {
-  description = "The name of the launch configuration for ALB instances"
-  type        = string
-}
 
 # Variable pour le nom d'utilisateur de la base de données RDS
 variable "db_username" {
@@ -80,11 +75,6 @@ variable "region" {
   default     = "eu-west-3"
 }
 
-# Variable pour l'URL du cluster OIDC de EKS (utilisé pour Velero ou d'autres services)
-variable "cluster_oidc_issuer_url" {
-  description = "The OIDC issuer URL of the EKS cluster"
-  type        = string
-}
 
 # Variable pour l'ARN du certificat SSL
 variable "certificate_arn" {
@@ -106,19 +96,3 @@ variable "bucket_name" {
   type        = string
 }
 
-# Le fournisseur Velero (ex: aws, azure, gcp, etc.)
-variable "velero_provider" {
-  description = "Velero provider (aws, azure, etc.)"
-  type        = string
-}
-
-# L'URL du fournisseur OIDC (dépend de la configuration EKS)
-variable "openid_connect_provider_uri" {
-  description = "OIDC provider URL for Velero integration"
-  type        = string
-}
-
-variable "eks_nodes_sg_id" {
-  description = "The security group ID for EKS nodes"
-  type        = string
-}
